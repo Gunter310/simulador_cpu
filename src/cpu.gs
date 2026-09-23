@@ -1,29 +1,47 @@
-// src/cpu.gs
+// src/cpu.gs (Continuación)
 
-// Estado global de los registros del CPU (8 bits cada uno)
-var cpuState = {
-  PC: 0x00,  // Program Counter
-  IR: 0x00,  // Instruction Register
-  MAR: 0x00, // Memory Address Register
-  MDR: 0x00, // Memory Buffer Register
-  AX: 0x00,  // Acumulador
-  BX: 0x00,  // Registro de propósito general
-  ZF: 0,     // Zero Flag
-  CF: 0,     // Carry Flag
-  SF: 0,     // Sign Flag
-  fase: 'FETCH' // Estado actual del ciclo
-};
+// Ejecuta una micro-operación o fase según el ciclo de reloj
+function step() {
+  switch (cpuState.fase) {
+    case 'FETCH':
+      fetchStep();
+      cpuState.fase = 'DECODE';
+      break;
+    case 'DECODE':
+      decodeStep();
+      cpuState.fase = 'EXECUTE';
+      break;
+    case 'EXECUTE':
+      executeStep();
+      cpuState.fase = 'STORE';
+      break;
+    case 'STORE':
+      storeStep();
+      cpuState.fase = 'FETCH'; // Vuelve a empezar el ciclo
+      break;
+  }
+}
 
-// Función para reiniciar el CPU
-function resetCPU() {
-  cpuState.PC = 0x00;
-  cpuState.IR = 0x00;
-  cpuState.MAR = 0x00;
-  cpuState.MDR = 0x00;
-  cpuState.AX = 0x00;
-  cpuState.BX = 0x00;
-  cpuState.ZF = 0;
-  cpuState.CF = 0;
-  cpuState.SF = 0;
-  cpuState.fase = 'FETCH';
+// 1. Fase Fetch (Búsqueda)
+function fetchStep() {
+  cpuState.MAR = cpuState.PC;           // MAR ← PC[cite: 4]
+  cpuState.MDR = read(cpuState.MAR);    // MDR ← RAM[MAR][cite: 4]
+  cpuState.IR = cpuState.MDR;           // IR ← MDR[cite: 4]
+  cpuState.PC = (cpuState.PC + 1) & 0xFF; // PC ← PC + 1 (con límite de 8 bits)[cite: 4]
+}
+
+// 2. Fase Decode (Decodificación)
+function decodeStep() {
+  // La Unidad de Control interpreta el Opcode en IR
+  // Aquí prepararemos los operandos en las siguientes fases
+}
+
+// 3. Fase Execute (Ejecución)
+function executeStep() {
+  // La ALU procesa la instrucción actual
+}
+
+// 4. Fase Store (Almacenamiento / Write-back)
+function storeStep() {
+  // Se guarda el resultado final en registros o memoria
 }
