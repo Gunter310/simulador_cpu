@@ -1,5 +1,3 @@
-// src/memory.gs
-
 // Lee un byte desde la dirección de memoria especificada (00h a FFh / 0 a 255)
 function read(addr) {
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
