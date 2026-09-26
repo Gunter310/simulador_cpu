@@ -32,13 +32,38 @@ function reiniciarSimulador() {
 
 function step() {
   var state = getCpuState_();
-  if (state.halted) return; // HLT detiene el reloj, como pide el PDF
+  if (state.halted) return;
+
+  state.pasoCount = (state.pasoCount || 0) + 1;
+  var etiqueta = '[Paso ' + state.pasoCount + ']';
 
   switch (state.fase) {
-    case 'FETCH':   state = fetchStep(state);   state.fase = 'DECODE';  break;
-    case 'DECODE':  state = decodeStep(state);  state.fase = 'EXECUTE'; break;
-    case 'EXECUTE': state = executeStep(state); state.fase = 'STORE';   break;
-    case 'STORE':   state = storeStep(state);   state.fase = 'FETCH';   break;
+    case 'FETCH':
+      state = fetchStep(state);
+      agregarLog(etiqueta + ' FETCH: MAR=' + state.MAR + ', MDR=' + state.MDR + ' -> IR=' + state.IR);
+      state.fase = 'DECODE';
+      break;
+
+    case 'DECODE':
+      state = decodeStep(state);
+      agregarLog(etiqueta + ' DECODE: MAR=' + state.MAR + ', MDR=' + state.MDR +
+                  ' -> ' + state.decoded.mnemonic + ', operando=' + state.decoded.operand);
+      state.fase = 'EXECUTE';
+      break;
+
+    case 'EXECUTE':
+      state = executeStep(state);
+      agregarLog(etiqueta + ' EXECUTE: ' + state.decoded.mnemonic +
+                  ' -> ZF=' + state.ZF + ' CF=' + state.CF + ' SF=' + state.SF);
+      if (state.halted) agregarLog(etiqueta + ' HLT: reloj detenido.');
+      state.fase = 'STORE';
+      break;
+
+    case 'STORE':
+      state = storeStep(state);
+      agregarLog(etiqueta + ' STORE: ' + state.lastWriteDesc);
+      state.fase = 'FETCH';
+      break;
   }
   saveCpuState_(state);
 }
@@ -112,13 +137,16 @@ function aplicarFlags_(state, r) {
 
 // 4. Fase Store: aquí SÍ se escribe de verdad, en registro o en RAM
 function storeStep(state) {
+  state.lastWriteDesc = 'sin escritura';
   if (state.writeBack) {
     if (state.writeBack.reg) {
-      state[state.writeBack.reg] = state.writeBack.value; // AX o BX
+      state[state.writeBack.reg] = state.writeBack.value;
+      state.lastWriteDesc = state.writeBack.reg + '=' + state.writeBack.value;
     } else if (state.writeBack.address !== undefined) {
       state.MAR = state.writeBack.address;
       state.MDR = state.writeBack.value;
-      write(state.MAR, state.MDR); // MDR → RAM[MAR], tal como dice el PDF
+      write(state.MAR, state.MDR);
+      state.lastWriteDesc = 'RAM[' + state.MAR + ']=' + state.MDR;
     }
     state.writeBack = null;
   }

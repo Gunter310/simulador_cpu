@@ -23,3 +23,14 @@ function verificarHalted() {
   Logger.log("AX final: " + state.AX);
   Logger.log("Memoria[128]: " + read(128));
 }
+function evidenciaALU() {
+  Logger.log("ADD 200+100 = " + JSON.stringify(aluOperate('ADD', 200, 100)));
+  Logger.log("SUB 5-10 = "   + JSON.stringify(aluOperate('SUB', 5, 10)));
+  Logger.log("INC 255 = "    + JSON.stringify(aluOperate('INC', 255, 0)));
+  Logger.log("DEC 0 = "      + JSON.stringify(aluOperate('DEC', 0, 0)));
+  Logger.log("AND 12,10 = "  + JSON.stringify(aluOperate('AND', 12, 10)));
+  Logger.log("OR 12,10 = "   + JSON.stringify(aluOperate('OR', 12, 10)));
+  Logger.log("XOR 12,10 = "  + JSON.stringify(aluOperate('XOR', 12, 10)));
+  Logger.log("NOT 0 = "      + JSON.stringify(aluOperate('NOT', 0, 0)));
+  Logger.log("CMP 5,5 = "    + JSON.stringify(aluOperate('CMP', 5, 5)));
+}

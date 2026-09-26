@@ -21,6 +21,8 @@ function ejecutarPaso() {
 
 function reiniciarSimulador() {
   resetCPU();
+  limpiarLog();
+  agregarLog('--- Sistema reiniciado ---');
   updateUI();
-  renderMemoryMatrix(); 
+  renderMemoryMatrix();
 }
