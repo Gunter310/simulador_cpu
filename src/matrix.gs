@@ -78,3 +78,10 @@ function mostrarDetalleCelda_(sheet, address) {
   sheet.getRange(24, 2).setValue('Mnemónico:');
   sheet.getRange(24, 3).setValue(mnemonic);
 }
+
+function resaltarCeldaMemoria_(address, color) {
+  var sheet = getMatrixSheet_();
+  var row = Math.floor(address / 16);
+  var col = address % 16;
+  sheet.getRange(MATRIX_START_ROW + 1 + row, MATRIX_START_COL + 1 + col).setBackground(color);
+}

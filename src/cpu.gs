@@ -36,6 +36,7 @@ function step() {
 
   state.pasoCount = (state.pasoCount || 0) + 1;
   var etiqueta = '[Paso ' + state.pasoCount + ']';
+  var faseEjecutada = state.fase; // ← NUEVO: guarda cuál fase se va a ejecutar ahora
 
   switch (state.fase) {
     case 'FETCH':
@@ -65,6 +66,7 @@ function step() {
       state.fase = 'FETCH';
       break;
   }
+  state.lastFaseEjecutada = faseEjecutada; // ← NUEVO
   saveCpuState_(state);
 }
 
@@ -138,15 +140,19 @@ function aplicarFlags_(state, r) {
 // 4. Fase Store: aquí SÍ se escribe de verdad, en registro o en RAM
 function storeStep(state) {
   state.lastWriteDesc = 'sin escritura';
+  state.lastWriteTarget = null; // ← NUEVO
+
   if (state.writeBack) {
     if (state.writeBack.reg) {
       state[state.writeBack.reg] = state.writeBack.value;
       state.lastWriteDesc = state.writeBack.reg + '=' + state.writeBack.value;
+      state.lastWriteTarget = { reg: state.writeBack.reg }; // ← NUEVO
     } else if (state.writeBack.address !== undefined) {
       state.MAR = state.writeBack.address;
       state.MDR = state.writeBack.value;
       write(state.MAR, state.MDR);
       state.lastWriteDesc = 'RAM[' + state.MAR + ']=' + state.MDR;
+      state.lastWriteTarget = { address: state.MAR }; // ← NUEVO
     }
     state.writeBack = null;
   }
