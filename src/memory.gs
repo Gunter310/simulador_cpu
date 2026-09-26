@@ -1,27 +1,38 @@
-// Inicializamos la memoria RAM con 256 celdas (256 bytes), todas en 0x00
-var memory = new Array(256).fill(0x00);
+// La memoria se guarda como JSON en PropertiesService para persistir entre ejecuciones
+const RAM_SIZE = 256;
+
+function getMemory_() {
+  var raw = PropertiesService.getScriptProperties().getProperty('RAM');
+  return raw ? JSON.parse(raw) : new Array(RAM_SIZE).fill(0);
+}
+
+function saveMemory_(memory) {
+  PropertiesService.getScriptProperties().setProperty('RAM', JSON.stringify(memory));
+}
 
 /**
  * Lee el valor almacenado en una dirección de memoria específica.
- * @param {number} address - Dirección de 0 a 255 (00h a FFh)
- * @return {number} Valor de 8 bits contenido en esa dirección
  */
 function read(address) {
   if (address < 0 || address > 255) {
     throw new Error("Dirección de memoria fuera de rango: " + address);
   }
-  return memory[address];
+  return getMemory_()[address];
 }
 
 /**
  * Escribe un valor en una dirección de memoria específica.
- * @param {number} address - Dirección de 0 a 255 (00h a FFh)
- * @param {number} value - Valor de 8 bits a almacenar
  */
 function write(address, value) {
   if (address < 0 || address > 255) {
     throw new Error("Dirección de memoria fuera de rango: " + address);
   }
-  // Nos aseguramos de que el valor esté truncado a 8 bits (0 a 255)
+  var memory = getMemory_();
   memory[address] = value & 0xFF;
+  saveMemory_(memory);
+}
+
+/** Reinicia toda la RAM a ceros (útil para LOAD PROGRAM y pruebas) */
+function resetMemory() {
+  saveMemory_(new Array(RAM_SIZE).fill(0));
 }

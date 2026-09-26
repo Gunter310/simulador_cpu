@@ -29,7 +29,7 @@ function aluOperate(op, a, b) {
     case 'DEC':
       let dec = a - 1;
       result = dec & 0xFF;
-      cf = a < 0 ? 1 : 0;
+      cf = (a === 0) ? 1 : 0;
       break;
 
     // --- Operaciones Lógicas ---
