@@ -31,6 +31,7 @@ function ejecutarPaso() {
 }
 
 function reiniciarSimulador() {
+  setRunning_(false); // ← nuevo: detiene cualquier RUN en curso
   resetCPU();
   limpiarLog();
   agregarLog('--- Sistema reiniciado ---');
