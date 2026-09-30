@@ -1,7 +1,7 @@
 // matrix.gs
-const MATRIX_SHEET_NAME = 'Memoria';
-const MATRIX_START_ROW = 2;   // fila donde empiezan los encabezados de columna
-const MATRIX_START_COL = 2;   // columna B, donde empiezan los encabezados de fila
+const MATRIX_SHEET_NAME = 'CPU';       // antes decía 'Memoria'
+const MATRIX_START_ROW = 2;             // arranca en la fila 1
+const MATRIX_START_COL = 10;             // arranca en la columna D, para no chocar con A-B (registros)
 
 function getMatrixSheet_() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -67,16 +67,17 @@ function mostrarDetalleCelda_(sheet, address) {
   var bin = value.toString(2).padStart(8, '0');
   var mnemonic = (address <= 0x7F) ? (ISA[value] || '(operando / vacío)') : '(segmento de datos)';
 
-  sheet.getRange(20, 2).setValue('Dirección:');
-  sheet.getRange(20, 3).setValue('0x' + address.toString(16).toUpperCase().padStart(2, '0'));
-  sheet.getRange(21, 2).setValue('Hexadecimal:');
-  sheet.getRange(21, 3).setValue(hex);
-  sheet.getRange(22, 2).setValue('Binario:');
-  sheet.getRange(22, 3).setValue(bin);
-  sheet.getRange(23, 2).setValue('Decimal:');
-  sheet.getRange(23, 3).setValue(value.toString());
-  sheet.getRange(24, 2).setValue('Mnemónico:');
-  sheet.getRange(24, 3).setValue(mnemonic);
+  // Ahora en columnas D-E, filas 21-25 (debajo de la matriz, lejos de los botones en A-C)
+  sheet.getRange(21, 4).setValue('Dirección:');
+  sheet.getRange(21, 5).setValue('0x' + address.toString(16).toUpperCase().padStart(2, '0'));
+  sheet.getRange(22, 4).setValue('Hexadecimal:');
+  sheet.getRange(22, 5).setValue(hex);
+  sheet.getRange(23, 4).setValue('Binario:');
+  sheet.getRange(23, 5).setValue(bin);
+  sheet.getRange(24, 4).setValue('Decimal:');
+  sheet.getRange(24, 5).setValue(value.toString());
+  sheet.getRange(25, 4).setValue('Mnemónico:');
+  sheet.getRange(25, 5).setValue(mnemonic);
 }
 
 function resaltarCeldaMemoria_(address, color) {

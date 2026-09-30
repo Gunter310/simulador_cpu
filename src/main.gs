@@ -2,21 +2,38 @@
 function cargarPrograma() {
   resetMemory();
   var programa = [
-    0x01, 0x00,   // 00: MOV AX, 0
-    0x02, 0x05,   // 02: MOV BX, 5
-    0x10, 0x03,   // 04: ADD AX, 3      <- inicio del bucle
-    0x17, 0x00,   // 06: DEC BX
-    0x22, 0x04,   // 08: JNZ 0x04
-    0x07, 0x80,   // 0A: STORE [0x80], AX
-    0xFF, 0x00    // 0C: HLT
+    1, 0,       // dirección 0:  MOV AX, 0
+    2, 5,       // dirección 2:  MOV BX, 5
+    16, 3,      // dirección 4:  ADD AX, 3    <- inicio del bucle
+    23, 0,      // dirección 6:  DEC BX
+    34, 4,      // dirección 8:  JNZ 4
+    7, 128,     // dirección 10: STORE [128], AX
+    255, 0      // dirección 12: HLT
   ];
   for (var i = 0; i < programa.length; i++) {
     write(i, programa[i]);
   }
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-  sheet.getRange("A13").setValue("Programa 3x5 cargado (14 bytes)");
-  renderMemoryMatrix();	
+  renderMemoryMatrix();
 }
+
+function cargarPrograma2() {
+  resetMemory();
+  var programa = [
+    5, 128,     // 0:  LOAD AX, [128]
+    2, 0,       // 2:  MOV BX, 0
+    24, 0,      // 4:  CMP AX, 0       <- inicio del bucle
+    33, 14,     // 6:  JZ 14
+    22, 0,      // 8:  DEC AX
+    21, 0,      // 10: INC BX
+    32, 4,      // 12: JMP 4
+    8, 129,     // 14: STORE [129], BX
+    255, 0      // 16: HLT
+  ];
+  for (var i = 0; i < programa.length; i++) write(i, programa[i]);
+  write(128, 3); // dato de entrada
+  renderMemoryMatrix();
+}
+
 function verificarHalted() {
   var state = getCpuState_();
   Logger.log("Halted: " + state.halted);

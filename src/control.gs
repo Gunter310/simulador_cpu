@@ -22,7 +22,7 @@ function ejecutarContinuo() {
   setRunning_(true);
   var delay = getDelay_();
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-  var maxIteraciones = 2000; // límite de seguridad, evita bucles infinitos accidentales
+  var maxIteraciones = 2000;
   var i = 0;
 
   while (isRunning_() && i < maxIteraciones) {
@@ -38,7 +38,14 @@ function ejecutarContinuo() {
     resaltarFase_(sheet, nuevoEstado.lastFaseEjecutada, nuevoEstado);
     renderMemoryMatrix();
 
-    SpreadsheetApp.flush(); // fuerza que los cambios se vean YA, no al final de la función
+    // --- NUEVO: mismo resaltado de memoria que usa ejecutarPaso() ---
+    if (nuevoEstado.lastFaseEjecutada === 'FETCH' || nuevoEstado.lastFaseEjecutada === 'DECODE') {
+      resaltarCeldaMemoria_(nuevoEstado.MAR, '#FFCC80'); // naranja: lectura
+    } else if (nuevoEstado.lastFaseEjecutada === 'STORE' && nuevoEstado.lastWriteTarget && nuevoEstado.lastWriteTarget.address !== undefined) {
+      resaltarCeldaMemoria_(nuevoEstado.lastWriteTarget.address, '#A5D6A7'); // verde: escritura
+    }
+
+    SpreadsheetApp.flush();
     Utilities.sleep(delay);
     i++;
   }
