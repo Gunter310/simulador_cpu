@@ -3,7 +3,7 @@ function cargarPrograma() {
   resetMemory();
   var programa = [
     1, 0,       // dirección 0:  MOV AX, 0
-    2, 5,       // dirección 2:  MOV BX, 5
+    6, 129,     // dirección 2:  LOAD BX, [129]
     16, 3,      // dirección 4:  ADD AX, 3    <- inicio del bucle
     23, 0,      // dirección 6:  DEC BX
     34, 4,      // dirección 8:  JNZ 4
@@ -13,26 +13,10 @@ function cargarPrograma() {
   for (var i = 0; i < programa.length; i++) {
     write(i, programa[i]);
   }
+  write(129, 5);   // dato de entrada: cuántas veces sumar, en el segmento de datos
   renderMemoryMatrix();
 }
 
-function cargarPrograma2() {
-  resetMemory();
-  var programa = [
-    5, 128,     // 0:  LOAD AX, [128]
-    2, 0,       // 2:  MOV BX, 0
-    24, 0,      // 4:  CMP AX, 0       <- inicio del bucle
-    33, 14,     // 6:  JZ 14
-    22, 0,      // 8:  DEC AX
-    21, 0,      // 10: INC BX
-    32, 4,      // 12: JMP 4
-    8, 129,     // 14: STORE [129], BX
-    255, 0      // 16: HLT
-  ];
-  for (var i = 0; i < programa.length; i++) write(i, programa[i]);
-  write(128, 3); // dato de entrada
-  renderMemoryMatrix();
-}
 
 function verificarHalted() {
   var state = getCpuState_();
