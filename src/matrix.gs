@@ -14,37 +14,72 @@ function getMatrixSheet_() {
  * Dibuja/actualiza la matriz 16x16 completa: valores en hex + colores
  * de segmento (código vs datos). Llamar después de cada STEP/RESET/LOAD.
  */
+function getMatrixFormat_() {
+  return PropertiesService.getScriptProperties().getProperty('MATRIX_FORMAT') || 'HEX';
+}
+
+function formatearValor_(value, formato, address) {
+  if (formato === 'INS') {
+    // En el segmento de código, las direcciones pares son opcodes
+    if (address <= 0x7F && address % 2 === 0 && ISA[value]) return ISA[value];
+    return String(value);
+  }
+  if (formato === 'DEC') return String(value);
+  if (formato === 'BIN') return value.toString(2).padStart(8, '0');
+  return '0x' + value.toString(16).toUpperCase().padStart(2, '0');
+}
+
 function renderMemoryMatrix() {
   var sheet = getMatrixSheet_();
   var memory = getMemory_();
+  var formato = getMatrixFormat_();
 
-  // Encabezados de columna: 0,1,2...F (nibble bajo de la dirección)
-  for (var col = 0; col < 16; col++) {
-    sheet.getRange(MATRIX_START_ROW, MATRIX_START_COL + 1 + col)
-         .setValue(col.toString(16).toUpperCase())
-         .setFontWeight('bold')
-         .setHorizontalAlignment('center');
-  }
+  // Encabezados de columna: 0..F
+  var encCol = [];
+  for (var c = 0; c < 16; c++) encCol.push(c.toString(16).toUpperCase());
+  sheet.getRange(MATRIX_START_ROW, MATRIX_START_COL + 1, 1, 16)
+       .setValues([encCol]).setFontWeight('bold').setHorizontalAlignment('center');
 
-  // Encabezados de fila: 00,10,20...F0 (nibble alto de la dirección)
-  for (var row = 0; row < 16; row++) {
-    sheet.getRange(MATRIX_START_ROW + 1 + row, MATRIX_START_COL)
-         .setValue('0x' + (row * 16).toString(16).toUpperCase().padStart(2, '0'))
-         .setFontWeight('bold');
-  }
-
-  // Las 256 celdas de datos
+  // Encabezados de fila: 0x00, 0x10, ... 0xF0
+  var encFila = [];
   for (var r = 0; r < 16; r++) {
-    for (var c = 0; c < 16; c++) {
-      var address = r * 16 + c;
-      var value = memory[address];
-      var cell = sheet.getRange(MATRIX_START_ROW + 1 + r, MATRIX_START_COL + 1 + c);
-      cell.setValue('0x' + value.toString(16).toUpperCase().padStart(2, '0'));
-      cell.setHorizontalAlignment('center');
-      cell.setBackground(address <= 0x7F ? '#CFE8FF' : '#D9F2D9'); // azul=código, verde=datos
-    }
+    encFila.push(['0x' + (r * 16).toString(16).toUpperCase().padStart(2, '0')]);
   }
+  sheet.getRange(MATRIX_START_ROW + 1, MATRIX_START_COL, 16, 1)
+       .setValues(encFila).setFontWeight('bold');
+
+  // Las 256 celdas, escritas de una sola vez
+  var valores = [];
+  var colores = [];
+  for (var f = 0; f < 16; f++) {
+    var filaV = [];
+    var filaC = [];
+    for (var k = 0; k < 16; k++) {
+      var address = f * 16 + k;
+      filaV.push(formatearValor_(memory[address], formato, address));
+      filaC.push(address <= 0x7F ? '#CFE8FF' : '#D9F2D9');  // azul=código, verde=datos
+    }
+    valores.push(filaV);
+    colores.push(filaC);
+  }
+  var rango = sheet.getRange(MATRIX_START_ROW + 1, MATRIX_START_COL + 1, 16, 16);
+  rango.setNumberFormat('@');          // texto plano, para que "00000001" no se vuelva el número 1
+  rango.setValues(valores).setBackgrounds(colores).setHorizontalAlignment('center');
 }
+
+// Cambia de vista y ajusta el ancho (el binario ocupa 8 caracteres)
+function cambiarVista_(formato) {
+  PropertiesService.getScriptProperties().setProperty('MATRIX_FORMAT', formato);
+  var sheet = getMatrixSheet_();
+  var ancho = (formato === 'BIN') ? 80 : (formato === 'INS') ? 100 : 55;
+  for (var k = 1; k <= 16; k++) sheet.setColumnWidth(MATRIX_START_COL + k, ancho);
+  renderMemoryMatrix();
+}
+
+function vistaInstru() { cambiarVista_('INS'); }
+function vistaHex() { cambiarVista_('HEX'); }
+function vistaDec() { cambiarVista_('DEC'); }
+function vistaBin() { cambiarVista_('BIN'); }
 
 /**
  * Simple trigger de Apps Script: se dispara SOLO por hacer clic en una celda,
@@ -65,7 +100,9 @@ function mostrarDetalleCelda_(sheet, address) {
   var value = getMemory_()[address];
   var hex = '0x' + value.toString(16).toUpperCase().padStart(2, '0');
   var bin = value.toString(2).padStart(8, '0');
-  var mnemonic = (address <= 0x7F) ? (ISA[value] || '(operando / vacío)') : '(segmento de datos)';
+  var mnemonic = (address <= 0x7F)
+  ? (address % 2 === 0 ? (ISA[value] || '(vacío)') : '(operando)')
+  : '(segmento de datos)';
 
   // Ahora en columnas D-E, filas 21-25 (debajo de la matriz, lejos de los botones en A-C)
   sheet.getRange(21, 4).setValue('Dirección:');
