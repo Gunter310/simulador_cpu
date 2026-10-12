@@ -203,26 +203,6 @@ Las instrucciones de salto (`JMP`, `JZ`, `JNZ`) modifican `PC` directamente dura
 
 **Resultado final:** `AX = 0x0F (15)`, guardado también en `RAM[0x80] = 15`, confirmando `3 × 5 = 15`.
 
-### Programa 2 — Cuenta regresiva con conteo de iteraciones
-
-| Dirección | Bytes | Instrucción |
-|---|---|---|
-| 0x00 | `05 80` | `LOAD AX, [0x80]` |
-| 0x02 | `02 00` | `MOV BX, 0` |
-| 0x04 | `18 00` | `CMP AX, 0` ← inicio del bucle |
-| 0x06 | `21 0E` | `JZ 0x0E` |
-| 0x08 | `16 00` | `DEC AX` |
-| 0x0A | `15 00` | `INC BX` |
-| 0x0C | `20 04` | `JMP 0x04` |
-| 0x0E | `08 81` | `STORE [0x81], BX` |
-| 0x10 | `FF 00` | `HLT` |
-
-**Entrada:** `RAM[0x80] = 3` (valor de prueba). **Lógica:** decrementa AX hasta que `CMP AX, 0` active ZF, contando en BX cuántas veces lo hizo.
-
-**Resultado final:** `AX = 0`, `BX = 3`, `RAM[0x81] = 3`.
-
-Este segundo programa fue añadido específicamente para probar las instrucciones `LOAD`, `CMP`, `JZ` y `JMP`, que el primer programa no ejercita.
-
 ---
 
 ## 8. Metodología de trabajo
