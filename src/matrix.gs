@@ -69,14 +69,25 @@ function renderMemoryMatrix() {
 
 // Cambia de vista y ajusta el ancho (el binario ocupa 8 caracteres)
 function cambiarVista_(formato) {
-  PropertiesService.getScriptProperties().setProperty('MATRIX_FORMAT', formato);
+  var props = PropertiesService.getScriptProperties();
+  props.setProperty('MATRIX_FORMAT', formato);
+  if (formato !== 'INS') props.setProperty('LAST_NUM_FORMAT', formato); // recuerda la última vista numérica
   var sheet = getMatrixSheet_();
   var ancho = (formato === 'BIN') ? 80 : (formato === 'INS') ? 100 : 55;
   for (var k = 1; k <= 16; k++) sheet.setColumnWidth(MATRIX_START_COL + k, ancho);
   renderMemoryMatrix();
 }
 
-function vistaInstru() { cambiarVista_('INS'); }
+// Botón INSTRU: alterna entre instrucciones y la última vista numérica
+function vistaInstru() {
+  if (getMatrixFormat_() === 'INS') {
+    var anterior = PropertiesService.getScriptProperties().getProperty('LAST_NUM_FORMAT') || 'HEX';
+    cambiarVista_(anterior);
+  } else {
+    cambiarVista_('INS');
+  }
+}
+
 function vistaHex() { cambiarVista_('HEX'); }
 function vistaDec() { cambiarVista_('DEC'); }
 function vistaBin() { cambiarVista_('BIN'); }
